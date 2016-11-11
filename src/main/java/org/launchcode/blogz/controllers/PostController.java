@@ -24,14 +24,41 @@ public class PostController extends AbstractController {
 	public String newPost(HttpServletRequest request, Model model) {
 		
 		// TODO - implement newPost
+		String title = request.getParameter("title");
+		String body = request.getParameter("body");
+		User user = this.getUserFromSession(request.getSession());
 		
-		return "redirect:index"; // TODO - this redirect should go to the new post's page  		
+		if(title.equals("") || title.equals(null)){
+			model.addAttribute("error", "All fields must be filled.");
+			model.addAttribute("title", title);
+			model.addAttribute("body", body);
+			
+			return "newpost";
+		}
+		
+		if(body.equals("") || body.equals(null)){
+			model.addAttribute("error", "All fields must be filled.");
+			model.addAttribute("title", title);
+			model.addAttribute("body", body);
+			
+			return "newpost";
+		}
+		
+		Post post = new Post(title, body, user);
+		postDao.save(post);
+		
+		
+		model.addAttribute("post", post);
+		
+		return "redirect:" + user.getUsername() + "/" + post.getUid(); // TODO - this redirect should go to the new post's page  		
 	}
 	
 	@RequestMapping(value = "/blog/{username}/{uid}", method = RequestMethod.GET)
 	public String singlePost(@PathVariable String username, @PathVariable int uid, Model model) {
 		
 		// TODO - implement singlePost
+		Post post = postDao.findByUid(uid);
+		model.addAttribute("post", post);
 		
 		return "post";
 	}
@@ -40,6 +67,9 @@ public class PostController extends AbstractController {
 	public String userPosts(@PathVariable String username, Model model) {
 		
 		// TODO - implement userPosts
+		User user = userDao.findByUsername(username);
+		List<Post> posts = user.getPosts();
+		model.addAttribute("posts", posts);
 		
 		return "blog";
 	}
